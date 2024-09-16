@@ -70,7 +70,7 @@ const GeoLayout intro_geo_mario_head_regular[] = {
          GEO_OPEN_NODE(),
             GEO_CAMERA(CAMERA_MODE_NONE, 0, 0, 1000, 0, 0, 0, 0x00000000),
             GEO_OPEN_NODE(),
-               GEO_ASM(2, geo_draw_mario_head_goddard),
+               //GEO_ASM(2, geo_draw_mario_head_goddard),
             GEO_CLOSE_NODE(),
          GEO_CLOSE_NODE(),
       GEO_CLOSE_NODE(),

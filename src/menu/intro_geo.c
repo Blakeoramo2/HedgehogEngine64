@@ -266,7 +266,7 @@ Gfx *geo_intro_gameover_backdrop(s32 callContext, struct GraphNode *node, UNUSED
 #if (defined(COMPLETE_EN_US_SEGMENT2) && ENABLE_RUMBLE)
 extern Gfx title_screen_bg_dl_rumble_pak[];
 #endif
-#ifdef GODDARD_EASTER_EGG
+//#ifdef GODDARD_EASTER_EGG
 extern Gfx title_screen_bg_dl_face_easter_egg_begin[];
 extern Gfx title_screen_bg_dl_face_easter_egg_end[];
 
@@ -297,7 +297,7 @@ void intro_gen_face_texrect(Gfx **dlIter) {
     for (y = 0; y < 6; y++) {
         for (x = 0; x < 8; x++) {
             if (sFaceVisible[y*8 + x] != 0) {
-                gSPTextureRectangle((*dlIter)++, (x * 40) << 2, (y * 40) << 2, (x * 40 + 39) << 2, (y * 40 + 39) << 2, 0,
+                gSPTextureRectangle((*dlIter)++, (x * 1) << 2, (y * 1) << 2, (x * 16 + 15) << 2, (y * 16 + 15) << 2, 0,
                                     0, 0, 4 << 10, 1 << 10);
             }
         }
@@ -333,7 +333,7 @@ RGBA16Return32 *intro_sample_frame_buffer(s32 imageW, s32 imageH, s32 sampleW, s
     f32 size = (1.0f / (sampleW * sampleH));
     ColorRGBf color;
     s32 iy, ix, sy, sx;
-    s32 idy, idx, sdy;
+    s32 idy, idx, sdy, sdx;
     RGBA16 *fb = gFramebuffers[sRenderingFramebuffer];
     RGBA16 *image = alloc_display_list((imageW * imageH) * sizeof(RGBA16));
 
@@ -351,7 +351,8 @@ RGBA16Return32 *intro_sample_frame_buffer(s32 imageW, s32 imageH, s32 sampleW, s
                 sdy = ((SCREEN_WIDTH * (idy + sy)) + idx);
                 for ((sx = 0); (sx < sampleW); (sx++)) {
                     // pixel = SCREEN_WIDTH * (sampleH * iy + sy + yOffset) + (sampleW * ix + xOffset) + sx;
-                    pixel = fb[sdy + sx];
+					sdx = ((SCREEN_HEIGHT * (idx + sx)) + idy);
+                    pixel = fb[sdy + sx]; // make negative to flip fb?
                     color[0] += RGBA16_R(pixel);
                     color[1] += RGBA16_G(pixel);
                     color[2] += RGBA16_B(pixel);
@@ -367,10 +368,16 @@ RGBA16Return32 *intro_sample_frame_buffer(s32 imageW, s32 imageH, s32 sampleW, s
     return (RGBA16Return32 *)image;
 }
 
+#include "../game/print.h"
+
+s32 xPos = 160;
+s32 yPos = 120;
+
 Gfx *geo_intro_face_easter_egg(s32 callContext, struct GraphNode *node, UNUSED void *context) {
     struct GraphNodeGenerated *genNode = (struct GraphNodeGenerated *)node;
     Gfx *dl = NULL;
     s32 i;
+	static u8 sex = 0;
 
     if (callContext != GEO_CONTEXT_RENDER) {
         for (i = 0; i < 48; i++) {
@@ -378,32 +385,54 @@ Gfx *geo_intro_face_easter_egg(s32 callContext, struct GraphNode *node, UNUSED v
         }
 
     } else if (callContext == GEO_CONTEXT_RENDER) {
-        if (sFaceCounter == 0) {
-            if (gPlayer1Controller->buttonPressed & Z_TRIG) {
+        //if (sFaceCounter == 0) {
+            if (!sex) {
                 play_sound(SOUND_MENU_STAR_SOUND, gGlobalSoundSource);
                 sFaceVisible[0] ^= 1;
                 sFaceCounter++;
+				//sFaceVisible[sFaceToggleOrder[sFaceCounter++]] ^= 1;
+				for (i = 0; i < 39; i++) {
+					sFaceVisible[sFaceToggleOrder[sFaceCounter++]] = 1;
+				}
+				sex = 1;
             }
-        } else {
-            sFaceVisible[sFaceToggleOrder[sFaceCounter++]] ^= 1;
-            if (sFaceCounter >= 40) {
-                sFaceCounter = 0;
+        //} else {
+            if (sFaceCounter > 38) {
+                sFaceCounter = 39;
             }
-        }
+        //}
+		
+		print_text(xPos, yPos, "M");
+		
+		
+		if (gPlayer1Controller->stickX < 0) {
+			xPos--;
+		}
+		if (gPlayer1Controller->stickX > 0) {
+			xPos++;
+		}
+		
+		if (gPlayer1Controller->stickY < 0) {
+			yPos--;
+		}
+		if (gPlayer1Controller->stickY > 0) {
+			yPos++;
+		}
+		
 
         // Draw while the first or last face is visible.
         if (sFaceVisible[0] == 1 || sFaceVisible[17] == 1) {
-            RGBA16 *image = (RGBA16 *)intro_sample_frame_buffer(40, 40, 2, 2, 120, 80);
+            RGBA16 *image = (RGBA16 *)intro_sample_frame_buffer(16, 16, 1, 1, xPos, -yPos + 223);
             if (image != NULL) {
                 SET_GRAPH_NODE_LAYER(genNode->fnNode.node.flags, LAYER_OPAQUE);
-                dl = intro_draw_face(image, 40, 40);
+                dl = intro_draw_face(image, 16, 16);
             }
         }
     }
 
     return dl;
 }
-#endif
+//#endif
 
 #if (defined(COMPLETE_EN_US_SEGMENT2) && ENABLE_RUMBLE)
 Gfx *geo_intro_rumble_pak_graphic(s32 callContext, struct GraphNode *node, UNUSED void *context) {

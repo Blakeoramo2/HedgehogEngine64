@@ -1709,6 +1709,10 @@ s32 execute_mario_action(UNUSED struct Object *obj) {
     vec3f_get_dist_and_angle(gMarioState->prevPos, gMarioState->pos, &gMarioState->moveSpeed, &gMarioState->movePitch, &gMarioState->moveYaw);
     vec3f_get_lateral_dist(gMarioState->prevPos, gMarioState->pos, &gMarioState->lateralSpeed);
     vec3f_copy(gMarioState->prevPos, gMarioState->pos);
+	
+	print_text_fmt_int(100,100,"%d",gMarioState->marioObj->header.gfx.cameraToObject[0]);
+	print_text_fmt_int(100,75,"%d",gMarioState->marioObj->header.gfx.cameraToObject[1]);
+	print_text_fmt_int(100,50,"%d",gMarioState->marioObj->header.gfx.cameraToObject[2]);
 
     if (gMarioState->action) {
 #ifdef ENABLE_DEBUG_FREE_MOVE
