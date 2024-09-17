@@ -22,7 +22,7 @@ extern Lights1 hmcLight;
 extern Lights1 jrbLight;
 extern Lights1 sw2Light;
 extern Lights1 ggZLight;
-//extern Lights1 blackLight; //you can deinitialize lighting
+extern Lights1 blackLight; //you can deinitialize lighting
 //extern Lights1 whiteLight; // you can just disable lighting or use vanilla
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 

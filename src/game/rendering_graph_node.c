@@ -591,7 +591,7 @@ static Lights1* sAmbientLight = NULL;
  * Creates a displaylist to set the active lights closest to a given location
  */
  
-#define LIGHT_COLORS 2
+#define LIGHT_COLORS 7
  
 //Gfx* createLightDl(UNUSED Vec3f pos, UNUSED f32 yOffset) {
 Gfx* createLightDl(void) {
@@ -612,9 +612,9 @@ Gfx* createLightDl(void) {
 			gSPNumLights(lightDl++, NUMLIGHTS_2);
 		}
 	
-		gSPLight(lightDl++, &sSpecularLight->l, LIGHT_3);
-		gSPLight(lightDl++, &sSceneLight->l, LIGHT_4);
-		//if (gNumLightSources > 2 || gNumLightColors > 2) gSPLight(lightDl++, &sAmbientLight->l, LIGHT_4);
+		gSPLight(lightDl++, &sSceneLight->l, LIGHT_3);
+		gSPLight(lightDl++, &sAmbientLight->l, LIGHT_5);
+		gSPLight(lightDl++, &sSpecularLight->l, LIGHT_7);
 		
 		
 		//gSPLight(lightDl++, &sSpecularLight->l, LIGHT_1);
@@ -644,11 +644,11 @@ void determine_number_of_light_sources(void) {
 		//switch (gNumLightSources) {
 			//case 0:
 			//case 1:
-				//gSPSetLights1(gDisplayListHead++, (*sSceneLight)); 
+				//gSPSetLights2(gDisplayListHead++, (*sSpecularLight)); 
 			//break;
 			//case 2:
-				//gSPSetLights1(gDisplayListHead++, (*sSpecularLight)); 
-				gSPSetLights2(gDisplayListHead++, (*sSceneLight));
+				gSPSetLights1(gDisplayListHead++, (*sSpecularLight)); 
+				//gSPSetLights3(gDisplayListHead++, (*sSceneLight));
 			//break;
 			//case 3:
 				//gSPSetLights1(gDisplayListHead++, (*sSpecularLight)); 
@@ -716,7 +716,7 @@ ALWAYS_INLINE u8 approach_color_light(u8 current, u8 target) {
 
 void setup_light(Vec3c LDir, Lights1 LCol, u8 LType) {
 		sSceneLight = (Lights1*)alloc_display_list(sizeof(Lights1));
-		bcopy(&LCol, sSceneLight, sizeof(Lights1));
+		bcopy(&blackLight, sSceneLight, sizeof(Lights1));
 		Vec3f transformedLightDirection;
 		Vec3f globalLightDirection;
 		switch (LType) {
@@ -774,7 +774,7 @@ void setup_light(Vec3c LDir, Lights1 LCol, u8 LType) {
 //not actually specular light, its a quirk with the way I have lighting set up
 void setup_specular_light(Vec3c LDir, u8 LType) {
 		sSpecularLight = (Lights1*)alloc_display_list(sizeof(Lights1));
-		bcopy(&vanillaLight, sSpecularLight, sizeof(Lights1));
+		bcopy(&blackLight, sSpecularLight, sizeof(Lights1));
 		Vec3f transformedLightDirection;
 		Vec3f globalLightDirection;
 		switch (LType) { //allow for it to have a type later?
@@ -834,7 +834,7 @@ void setup_specular_light(Vec3c LDir, u8 LType) {
 //not actually an ambient light, once again just a unique lighting quirk
 void setup_ambient_light(Vec3c LDir, u8 LType) {
 		sAmbientLight = (Lights1*)alloc_display_list(sizeof(Lights1));
-		bcopy(&vanillaLight, sAmbientLight, sizeof(Lights1));
+		bcopy(&blackLight, sAmbientLight, sizeof(Lights1));
 		Vec3f transformedLightDirection;
 		Vec3f globalLightDirection;
 		switch (LType) { //allow for it to have a type later?
@@ -912,9 +912,9 @@ void setup_light_dynamic(Vec3c LDir, Vec3uc LCol, u8 LType) {
 				sSceneLight->l->l.dir[1] = LDir[1];
 				sSceneLight->l->l.dir[2] = (s8)(transformedLightDirection[2]);
 	
-				sSceneLight->l->l.col[0] = approach_color_light(sSceneLight->l->l.col[0], pixColor[0]);
-				sSceneLight->l->l.col[1] = approach_color_light(sSceneLight->l->l.col[1], pixColor[1]);
-				sSceneLight->l->l.col[2] = approach_color_light(sSceneLight->l->l.col[2], pixColor[2]);
+				sSceneLight->l->l.col[0] = approach_color_light(sSceneLight->l->l.col[0], 0);
+				sSceneLight->l->l.col[1] = approach_color_light(sSceneLight->l->l.col[1], 0);
+				sSceneLight->l->l.col[2] = approach_color_light(sSceneLight->l->l.col[2], 0);
 	
 				sSceneLight->l->l.colc[0] = sSceneLight->l->l.col[0];
 				sSceneLight->l->l.colc[1] = sSceneLight->l->l.col[1];
@@ -1018,7 +1018,7 @@ void process_lighting(void) {
 	//Vec3f probePos;
     //if (gLightType > DIRECTIONAL_GLOBAL) {
         // Enable point lighting
-        //gSPSetGeometryMode(setLightsDL++, G_POINT_LIGHTING);
+        //gSPSetGeometryMode(setLightsDL++, G_LIGHTING);
 		//if (gMarioObject) {
 			//vec3f_copy(probePos, gMarioState->pos);
 		//} else {
@@ -1026,7 +1026,7 @@ void process_lighting(void) {
 		//}
     //} else {
         // Disable point lighting (may not be required, but doesn't hurt)
-        //gSPClearGeometryMode(setLightsDL++, G_POINT_LIGHTING);
+        //gSPClearGeometryMode(setLightsDL++, G_LIGHTING);
     //}
 	
 	// Enable the lights
