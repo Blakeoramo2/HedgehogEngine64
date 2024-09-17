@@ -591,6 +591,8 @@ static Lights1* sAmbientLight = NULL;
  * Creates a displaylist to set the active lights closest to a given location
  */
  
+#define LIGHT_COLORS 2
+ 
 //Gfx* createLightDl(UNUSED Vec3f pos, UNUSED f32 yOffset) {
 Gfx* createLightDl(void) {
     Gfx *lightDl, *lightDlHead;
@@ -601,18 +603,18 @@ Gfx* createLightDl(void) {
 		// Allocate a displaylist with room for each gSPLight and the gSPEndDisplayList
 		//if (!gVanillaLighting && !gFileSelect) {
 		if (!gVanillaLighting) {
-			lightDlHead = lightDl = alloc_display_list(sizeof(Gfx) * (3 + gNumLightColors));
+			lightDlHead = lightDl = alloc_display_list(sizeof(Gfx) * (3 + LIGHT_COLORS));
 
-			gSPNumLights(lightDl++, gNumLightColors);
+			gSPNumLights(lightDl++, LIGHT_COLORS);
 		} else {
 			lightDlHead = lightDl = alloc_display_list(sizeof(Gfx) * 5);
 
 			gSPNumLights(lightDl++, NUMLIGHTS_2);
 		}
 	
-		if (gNumLightSources > 1 || gNumLightColors > 1) gSPLight(lightDl++, &sSpecularLight->l, LIGHT_2);
-		gSPLight(lightDl++, &sSceneLight->l, LIGHT_1);
-		if (gNumLightSources > 2 || gNumLightColors > 2) gSPLight(lightDl++, &sAmbientLight->l, LIGHT_3);
+		gSPLight(lightDl++, &sSpecularLight->l, LIGHT_3);
+		gSPLight(lightDl++, &sSceneLight->l, LIGHT_4);
+		//if (gNumLightSources > 2 || gNumLightColors > 2) gSPLight(lightDl++, &sAmbientLight->l, LIGHT_4);
 		
 		
 		//gSPLight(lightDl++, &sSpecularLight->l, LIGHT_1);
@@ -639,21 +641,21 @@ Gfx* createLightDl(void) {
 void determine_number_of_light_sources(void) {
 	//if (!gVanillaLighting && !gFileSelect) {
 	if (!gVanillaLighting) {
-		switch (gNumLightSources) {
-			case 0:
-			case 1:
-				gSPSetLights1(gDisplayListHead++, (*sSceneLight)); 
-			break;
-			case 2:
+		//switch (gNumLightSources) {
+			//case 0:
+			//case 1:
+				//gSPSetLights1(gDisplayListHead++, (*sSceneLight)); 
+			//break;
+			//case 2:
 				//gSPSetLights1(gDisplayListHead++, (*sSpecularLight)); 
 				gSPSetLights2(gDisplayListHead++, (*sSceneLight));
-			break;
-			case 3:
+			//break;
+			//case 3:
 				//gSPSetLights1(gDisplayListHead++, (*sSpecularLight)); 
 				//gSPSetLights2(gDisplayListHead++, (*sAmbientLight));
-				gSPSetLights3(gDisplayListHead++, (*sSceneLight));
-			break;
-		}
+				//gSPSetLights3(gDisplayListHead++, (*sSceneLight));
+			//break;
+		//}
 	} else {
 		if (gOccludeLighting) {
 			gSPSetLights3(gDisplayListHead++, (*sSceneLight));
@@ -898,6 +900,7 @@ void setup_light_dynamic(Vec3c LDir, Vec3uc LCol, u8 LType) {
 		Vec3f globalLightDirection;
 		switch (LType) {
 			case FBPROBE_CAMERA:
+			case DIRECTIONAL_CAMERA:
 				//if (!gHasFrameBuffer) LType = DIRECTIONAL_CAMERA;
 				for (u32 i = 0; i < 3; i++) {
 					globalLightDirection[i] = LDir[i];
@@ -918,6 +921,7 @@ void setup_light_dynamic(Vec3c LDir, Vec3uc LCol, u8 LType) {
 				sSceneLight->l->l.colc[2] = sSceneLight->l->l.col[2];
 			break;
 			case FBPROBE_GLOBAL:
+			case DIRECTIONAL_GLOBAL:
 				//if (!gHasFrameBuffer) LType = DIRECTIONAL_GLOBAL;
 				sSceneLight->l->l.dir[0] = LDir[0];
 				sSceneLight->l->l.dir[1] = LDir[1];
@@ -931,74 +935,6 @@ void setup_light_dynamic(Vec3c LDir, Vec3uc LCol, u8 LType) {
 				sSceneLight->l->l.colc[1] = sSceneLight->l->l.col[1];
 				sSceneLight->l->l.colc[2] = sSceneLight->l->l.col[2];
 			break;
-			case DIRECTIONAL_CAMERA:
-				//if (!gHasFrameBuffer) gIsDynamic = FALSE;
-				for (u32 i = 0; i < 3; i++) {
-					globalLightDirection[i] = LDir[i];
-				}
-				linear_mtxf_transpose_mul_vec3f(gCameraTransform, transformedLightDirection, globalLightDirection);
-				
-				sSceneLight->l->l.dir[0] = (s8)(transformedLightDirection[0]);
-				//sSceneLight->l->l.dir[1] = (s8)(transformedLightDirection[1]);
-				sSceneLight->l->l.dir[1] = LDir[1];
-				sSceneLight->l->l.dir[2] = (s8)(transformedLightDirection[2]);
-	
-				sSceneLight->l->l.col[0] = LCol[0];
-				sSceneLight->l->l.col[1] = LCol[1];
-				sSceneLight->l->l.col[2] = LCol[2];
-	
-				sSceneLight->l->l.colc[0] = sSceneLight->l->l.col[0];
-				sSceneLight->l->l.colc[1] = sSceneLight->l->l.col[1];
-				sSceneLight->l->l.colc[2] = sSceneLight->l->l.col[2];
-			break;
-			case DIRECTIONAL_GLOBAL:
-				//if (!gHasFrameBuffer) gIsDynamic = FALSE;
-				sSceneLight->l->l.dir[0] = LDir[0];
-				sSceneLight->l->l.dir[1] = LDir[1];
-				sSceneLight->l->l.dir[2] = LDir[2];
-	
-				sSceneLight->l->l.col[0] = LCol[0];
-				sSceneLight->l->l.col[1] = LCol[1];
-				sSceneLight->l->l.col[2] = LCol[2];
-	
-				sSceneLight->l->l.colc[0] = sSceneLight->l->l.col[0];
-				sSceneLight->l->l.colc[1] = sSceneLight->l->l.col[1];
-				sSceneLight->l->l.colc[2] = sSceneLight->l->l.col[2];
-			break;
-			case OCCLUDE_CAMERA:
-				for (u32 i = 0; i < 3; i++) {
-					globalLightDirection[i] = LDir[i];
-				}
-				linear_mtxf_transpose_mul_vec3f(gCameraTransform, transformedLightDirection, globalLightDirection);
-				
-				sSceneLight->l->l.dir[0] = (s8)(transformedLightDirection[0]);
-				//sSceneLight->l->l.dir[1] = (s8)(transformedLightDirection[1]);
-				sSceneLight->l->l.dir[1] = LDir[1];
-				sSceneLight->l->l.dir[2] = (s8)(transformedLightDirection[2]);
-	
-				sSceneLight->l->l.col[0] = approach_color_light(sSceneLight->l->l.col[0], LCol[0]);
-				sSceneLight->l->l.col[1] = approach_color_light(sSceneLight->l->l.col[1], LCol[1]);
-				sSceneLight->l->l.col[2] = approach_color_light(sSceneLight->l->l.col[2], LCol[2]);
-	
-				sSceneLight->l->l.colc[0] = sSceneLight->l->l.col[0];
-				sSceneLight->l->l.colc[1] = sSceneLight->l->l.col[1];
-				sSceneLight->l->l.colc[2] = sSceneLight->l->l.col[2];
-			break;
-			#if 0
-			case OCCLUDE_GLOBAL:
-				sSceneLight->l->l.dir[0] = LDir[0];
-				sSceneLight->l->l.dir[1] = LDir[1];
-				sSceneLight->l->l.dir[2] = LDir[2];
-				
-				sSceneLight->l->l.col[0] = approach_color_light(sSceneLight->l->l.col[0], LCol[0]);
-				sSceneLight->l->l.col[1] = approach_color_light(sSceneLight->l->l.col[1], LCol[1]);
-				sSceneLight->l->l.col[2] = approach_color_light(sSceneLight->l->l.col[2], LCol[2]);
-	
-				sSceneLight->l->l.colc[0] = sSceneLight->l->l.col[0];
-				sSceneLight->l->l.colc[1] = sSceneLight->l->l.col[1];
-				sSceneLight->l->l.colc[2] = sSceneLight->l->l.col[2];
-			break;
-			#endif
 		}
 }
 
@@ -1040,22 +976,22 @@ void process_lighting(void) {
 			if (gNumLightSources > 1 || gNumLightColors > 1) setup_specular_light(gCurrLightDirection2, gLightType);
 			
 			//fallback to static bounce lights if framebuffer is not being emulated
-			if (!gHasFrameBuffer) {
-				if (gLightType == FBPROBE_CAMERA) {
-					gLightType = DIRECTIONAL_CAMERA;
-					gIsDynamic = FALSE;
-				} else if (gLightType == FBPROBE_GLOBAL) {
-					gLightType = DIRECTIONAL_GLOBAL;
-					gIsDynamic = FALSE;
-				}
-			}
+			//if (!gHasFrameBuffer) {
+				//if (gLightType == FBPROBE_CAMERA) {
+					//gLightType = DIRECTIONAL_CAMERA;
+					//gIsDynamic = FALSE;
+				//} else if (gLightType == FBPROBE_GLOBAL) {
+					//gLightType = DIRECTIONAL_GLOBAL;
+					//gIsDynamic = FALSE;
+				//}
+			//}
 			
-			if (!gIsDynamic && gLightType > FBPROBE_GLOBAL) {
-				setup_light(gCurrLightDirection, gCurrStaticColor, gLightType);
-			} else {
-				if (gLightType > FBPROBE_GLOBAL) determine_dynamic_lighting();
+			//if (!gIsDynamic && gLightType > FBPROBE_GLOBAL) {
+				//setup_light(gCurrLightDirection, gCurrStaticColor, gLightType);
+			//} else {
+				//if (gLightType > FBPROBE_GLOBAL) determine_dynamic_lighting();
 				setup_light_dynamic(gCurrLightDirection, gCurrDynamicColor, gLightType);
-			}
+			//}
 		
 			//behaves like a black "ambient" light when light colors is set to 3 and light sources is set to 2
 			//else cover the player in sSceneLight's colors (on accurate video plugins)
