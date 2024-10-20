@@ -2866,6 +2866,8 @@ void update_lakitu(struct Camera *c) {
     gLakituState.defMode = c->defMode;
 }
 
+u8 gMotionBlurThreshold = 0;
+
 /**
  * The main camera update function.
  * Gets controller input, checks for cutscenes, handles mode changes, and moves the camera
@@ -2926,6 +2928,13 @@ void update_camera(struct Camera *c) {
     if (gCurrDemoInput != NULL) camera_course_processing(c);
 #endif
     sCButtonsPressed = find_c_buttons_pressed(sCButtonsPressed, gPlayer1Controller->buttonPressed, gPlayer1Controller->buttonDown);
+	
+	if (gPlayer1Controller->buttonDown & C_BUTTONS) {
+		if (gMotionBlurThreshold > 63) {
+		} else {
+			gMotionBlurThreshold += 64;
+		}
+	}
 
     if (c->cutscene != CUTSCENE_NONE) {
         sYawSpeed = 0;

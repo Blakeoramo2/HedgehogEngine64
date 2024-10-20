@@ -680,7 +680,7 @@ ALWAYS_INLINE void framebuffer_probe_color(void) {
 	s32 pixel;
     s32 iy, ix, sy, sx;
     s32 idy, idx, sdy;
-    RGBA16 *fb = gFramebuffers[sRenderingFramebuffer];
+    RGBA16 *fb = gFramebuffers[sRenderedFramebuffer];
 
     for ((iy = 0); (iy < IMAGE_SIZE); (iy++)) {
         idy = (SAMPLE_SIZE + 12) * iy;
@@ -701,12 +701,14 @@ ALWAYS_INLINE void framebuffer_probe_color(void) {
     }
 }
 
-ALWAYS_INLINE u8 approach_color_light(u8 current, u8 target) {
+u8 approach_color_light(u8 current, u8 target) {
 	s16 diff = (target - current);
+	#define MAX_SPEED 8
+	u8 speed = (diff >= MAX_SPEED || diff <= -MAX_SPEED) ? MAX_SPEED : 1;
 	if (diff >= 0) {
-		current = (diff > 1) ? current + 2: target;
+		current = (diff > 1) ? current + speed: target;
 	} else {
-		current = (diff < -1) ? current - 2 : target;
+		current = (diff < -1) ? current - speed : target;
 	}
 	
     return current;
@@ -909,9 +911,9 @@ void setup_light_dynamic(Vec3c LDir, Vec3uc LCol, u8 LType) {
 				sSceneLight->l->l.dir[1] = LDir[1];
 				sSceneLight->l->l.dir[2] = (s8)(transformedLightDirection[2]);
 	
-				sSceneLight->l->l.col[0] = approach_color_light(sSceneLight->l->l.col[0], pixColor[0]);
-				sSceneLight->l->l.col[1] = approach_color_light(sSceneLight->l->l.col[1], pixColor[1]);
-				sSceneLight->l->l.col[2] = approach_color_light(sSceneLight->l->l.col[2], pixColor[2]);
+				sSceneLight->l->l.col[0] = approach_color_light(sSceneLight->l->l.col[0], pixColor[0] * 0.5f);
+				sSceneLight->l->l.col[1] = approach_color_light(sSceneLight->l->l.col[1], pixColor[1] * 0.5f);
+				sSceneLight->l->l.col[2] = approach_color_light(sSceneLight->l->l.col[2], pixColor[2] * 0.5f);
 	
 				sSceneLight->l->l.colc[0] = sSceneLight->l->l.col[0];
 				sSceneLight->l->l.colc[1] = sSceneLight->l->l.col[1];
@@ -1837,8 +1839,8 @@ void geo_process_root(struct GraphNodeRoot *node, Vp *b, Vp *c, s32 clearColor) 
 			//rainbowLED[1] = (coss((gGlobalTimer * 200) + 21845) + 1) * 127;
 			//rainbowLED[2] = (coss((gGlobalTimer * 200) - 21845) + 1) * 127;
 		if (gLakituState.curPos[1] < gMarioState->waterLevel) {
-			sizeYMultiplyer = 4.9f + coss(gGlobalTimer * 250);
-			sizeXMultiplyer = 4.9f + sins(gGlobalTimer * 125);
+			sizeYMultiplyer = 5.0f + coss(gGlobalTimer * 250);
+			sizeXMultiplyer = 5.0f + sins(gGlobalTimer * 125);
 		} else {
 			sizeYMultiplyer = 4;
 			sizeXMultiplyer = 4;

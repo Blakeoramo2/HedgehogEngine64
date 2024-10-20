@@ -374,6 +374,32 @@ void play_transition_after_delay(s16 transType, s16 time, u8 red, u8 green, u8 b
     play_transition(transType, time, red, green, blue);
 }
 
+ALWAYS_INLINE void revert_bloom_settings(void) {
+	//copy of the sonic boom settings
+	gDPPipeSync(gDisplayListHead++);
+	//gDPSetCycleType(gDisplayListHead++, G_CYC_1CYCLE);
+	//gDPSetRenderMode(gDisplayListHead++, G_RM_AA_ZB_OPA_SURF, G_RM_AA_ZB_OPA_SURF2);
+	//gDPSetCombineLERP(gDisplayListHead++, NOISE, 0, SHADE, 0, TEXEL0, 0, SHADE, 0, NOISE, 0, SHADE, 0, TEXEL0, 0, SHADE, 0);
+	//gSPLoadGeometryMode(gDisplayListHead++, G_ZBUFFER | G_SHADE | G_CULL_BACK | G_SHADING_SMOOTH);
+	gSPSetOtherMode(gDisplayListHead++, G_SETOTHERMODE_H, 4, 20, G_AD_NOISE | G_CD_MAGICSQ | G_CK_NONE | G_TC_FILT | G_TF_POINT | G_TT_NONE | G_TL_TILE | G_TD_CLAMP | G_TP_PERSP | G_CYC_1CYCLE | G_PM_1PRIMITIVE);
+	gSPSetOtherMode(gDisplayListHead++,G_SETOTHERMODE_L, 0, 32, G_AC_NONE | G_ZS_PIXEL | G_RM_AA_ZB_XLU_SURF | G_RM_AA_ZB_XLU_SURF2);
+	////gDPSetOtherMode(gDisplayListHead++,
+    ////G_AD_DISABLE | G_CD_DISABLE | G_CK_NONE | G_TC_FILT | G_TF_POINT | G_TT_NONE | G_TL_TILE |
+    ////G_TD_CLAMP | G_TP_NONE | G_CYC_1CYCLE | G_PM_NPRIMITIVE,
+    ////G_AC_NONE | G_ZS_PRIM | G_RM_OPA_SURF | G_RM_OPA_SURF2);
+	//gDPPipeSync(gDisplayListHead++);
+	//gDPSetCycleType(gDisplayListHead++, G_CYC_1CYCLE);
+	//gDPSetRenderMode(gDisplayListHead++, G_RM_AA_ZB_OPA_SURF, G_RM_AA_ZB_OPA_SURF2);
+}
+
+extern void render_bloom(void);
+extern void Play_DrawMotionBlur(u8 alpha);
+#define render_motion_blur(blurAmount) \
+	Play_DrawMotionBlur(blurAmount)
+	
+extern u8 gHasFrameBuffer;
+extern u8 gMotionBlurThreshold;
+
 void render_game(void) {
     PROFILER_GET_SNAPSHOT_TYPE(PROFILER_DELTA_COLLISION);
     if (gCurrentArea != NULL && !gWarpTransition.pauseRendering) {
@@ -388,6 +414,12 @@ void render_game(void) {
 
         gDPSetScissor(gDisplayListHead++, G_SC_NON_INTERLACE, 0, gBorderHeight, SCREEN_WIDTH,
                       SCREEN_HEIGHT - gBorderHeight);
+		if (gHasFrameBuffer && !gWarpTransition.isActive && gCurrLevelNum > 0) {
+			render_bloom();
+			if (gMotionBlurThreshold > 135) gMotionBlurThreshold = 136;
+			render_motion_blur(gMotionBlurThreshold);
+			revert_bloom_settings();
+		}
         render_hud();
 
         gDPSetScissor(gDisplayListHead++, G_SC_NON_INTERLACE, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);

@@ -1699,6 +1699,9 @@ void queue_rumble_particles(struct MarioState *m) {
 }
 #endif
 
+extern u8 gHasFrameBuffer;
+extern u8 gMotionBlurThreshold;
+
 /**
  * Main function for executing Mario's behavior. Returns particleFlags.
  */
@@ -1710,9 +1713,9 @@ s32 execute_mario_action(UNUSED struct Object *obj) {
     vec3f_get_lateral_dist(gMarioState->prevPos, gMarioState->pos, &gMarioState->lateralSpeed);
     vec3f_copy(gMarioState->prevPos, gMarioState->pos);
 	
-	print_text_fmt_int(100,100,"%d",gMarioState->marioObj->header.gfx.cameraToObject[0]);
-	print_text_fmt_int(100,75,"%d",gMarioState->marioObj->header.gfx.cameraToObject[1]);
-	print_text_fmt_int(100,50,"%d",gMarioState->marioObj->header.gfx.cameraToObject[2]);
+	//print_text_fmt_int(100,100,"%d",gMarioState->marioObj->header.gfx.cameraToObject[0]);
+	//print_text_fmt_int(100,75,"%d",gMarioState->marioObj->header.gfx.cameraToObject[1]);
+	//print_text_fmt_int(100,50,"%d",gMarioState->marioObj->header.gfx.cameraToObject[2]);
 
     if (gMarioState->action) {
 #ifdef ENABLE_DEBUG_FREE_MOVE
@@ -1775,6 +1778,16 @@ s32 execute_mario_action(UNUSED struct Object *obj) {
 #endif
         update_mario_info_for_cam(gMarioState);
         mario_update_hitbox_and_cap_model(gMarioState);
+		
+		if (gHasFrameBuffer) {
+			//s8 isNeg = (gMarioState->forwardVel < 0 || gMarioState->vel[1] < 0) ? -1 : 1;
+			s8 isNeg = (gMarioState->forwardVel < 0) ? -1 : 1;
+			if (gMarioState->forwardVel != 0) {
+				gMotionBlurThreshold = gMarioState->forwardVel * 0.85f * isNeg;
+			} //else if (gMarioState->vel[1] != 0) {
+				//gMotionBlurThreshold = gMarioState->vel[1] * 0.9f * isNeg;
+			//}
+		}
 
         // Both of the wind handling portions play wind audio only in
         // non-Japanese releases.
