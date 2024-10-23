@@ -399,6 +399,8 @@ extern void Play_DrawMotionBlur(u8 alpha);
 	
 extern u8 gHasFrameBuffer;
 extern u8 gMotionBlurThreshold;
+extern u8 toggleMotionBlur;
+extern u8 toggleBloom;
 
 void render_game(void) {
     PROFILER_GET_SNAPSHOT_TYPE(PROFILER_DELTA_COLLISION);
@@ -415,10 +417,12 @@ void render_game(void) {
         gDPSetScissor(gDisplayListHead++, G_SC_NON_INTERLACE, 0, gBorderHeight, SCREEN_WIDTH,
                       SCREEN_HEIGHT - gBorderHeight);
 		if (gHasFrameBuffer && !gWarpTransition.isActive && gCurrLevelNum > 0) {
-			render_bloom();
-			if (gMotionBlurThreshold > 135) gMotionBlurThreshold = 136;
-			render_motion_blur(gMotionBlurThreshold);
-			revert_bloom_settings();
+			if (toggleBloom) render_bloom();
+			if (toggleMotionBlur) {
+				if (gMotionBlurThreshold > 135) gMotionBlurThreshold = 136;
+				render_motion_blur(gMotionBlurThreshold);
+			}
+			if (toggleBloom) revert_bloom_settings();
 		}
         render_hud();
 

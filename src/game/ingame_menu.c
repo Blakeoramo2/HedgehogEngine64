@@ -1595,18 +1595,21 @@ void render_pause_red_coins(void) {
 }
 
 LangArray textCurrRatio43 = DEFINE_LANGUAGE_ARRAY(
-    "ASPECT RATIO: 4:3\nPRESS L TO SWITCH",
+    "ASPECT RATIO: 4:3\nPRESS L TO SWITCH, R TO TOGGLE BLOOM, Z TO TOGGLE BLUR",
     "RATIO D'ASPECT: 4:3\nAPPUYEZ SUR L POUR CHANGER",
     "SEITENVERHÄLTNIS: 4:3\nDRÜCKE L ZUM WECHSELN",
     "アスペクトひ: ４:３\nＬボタンできりかえ",
     "RELACIÓN DE ASPECTO: 4:3\nPULSA L PARA CAMBIAR");
 
 LangArray textCurrRatio169 = DEFINE_LANGUAGE_ARRAY(
-    "ASPECT RATIO: 16:9\nPRESS L TO SWITCH",
+    "ASPECT RATIO: 16:9\nPRESS L TO SWITCH, R TO TOGGLE BLOOM, Z TO TOGGLE BLUR",
     "RATIO D'ASPECT: 16:9\nAPPUYEZ SUR L POUR CHANGER",
     "SEITENVERHÄLTNIS: 16:9\nDRÜCKE L ZUM WECHSELN",
     "アスペクトひ: １６:９\nＬボタンできりかえ",
     "RELACIÓN DE ASPECTO: 16:9\nPULSA L PARA CAMBIAR");
+
+u8 toggleMotionBlur = FALSE;
+u8 toggleBloom = FALSE;
 
 /// By default, not needed as puppycamera has an option, but should you wish to revert that, you are legally allowed.
 #if defined(WIDE) && !defined(PUPPYCAM)
@@ -1620,8 +1623,14 @@ void render_widescreen_setting(void) {
     }
     gSPDisplayList(gDisplayListHead++, dl_ia_text_end);
     if (gPlayer1Controller->buttonPressed & L_TRIG){
-        gConfig.widescreen ^= 1;
+		gConfig.widescreen ^= 1;
         save_file_set_widescreen_mode(gConfig.widescreen);
+    }
+	if (gPlayer1Controller->buttonPressed & R_TRIG){
+		toggleMotionBlur ^= 1;
+    }
+	if (gPlayer1Controller->buttonPressed & Z_TRIG){
+		toggleBloom ^= 1;
     }
 }
 #endif
