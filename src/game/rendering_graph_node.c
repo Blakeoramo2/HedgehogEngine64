@@ -892,6 +892,7 @@ void setup_ambient_light(Vec3c LDir, u8 LType) {
 }
 
 //extern u8 gHasFrameBuffer;
+#define REDUCED_GI_BRIGHTNESS 0.5f
 
 void setup_light_dynamic(Vec3c LDir, Vec3uc LCol, u8 LType) {
 		sSceneLight = (Lights1*)alloc_display_list(sizeof(Lights1));
@@ -911,9 +912,9 @@ void setup_light_dynamic(Vec3c LDir, Vec3uc LCol, u8 LType) {
 				sSceneLight->l->l.dir[1] = LDir[1];
 				sSceneLight->l->l.dir[2] = (s8)(transformedLightDirection[2]);
 	
-				sSceneLight->l->l.col[0] = approach_color_light(sSceneLight->l->l.col[0], pixColor[0] * 0.5f);
-				sSceneLight->l->l.col[1] = approach_color_light(sSceneLight->l->l.col[1], pixColor[1] * 0.5f);
-				sSceneLight->l->l.col[2] = approach_color_light(sSceneLight->l->l.col[2], pixColor[2] * 0.5f);
+				sSceneLight->l->l.col[0] = approach_color_light(sSceneLight->l->l.col[0], pixColor[0] * REDUCED_GI_BRIGHTNESS);
+				sSceneLight->l->l.col[1] = approach_color_light(sSceneLight->l->l.col[1], pixColor[1] * REDUCED_GI_BRIGHTNESS);
+				sSceneLight->l->l.col[2] = approach_color_light(sSceneLight->l->l.col[2], pixColor[2] * REDUCED_GI_BRIGHTNESS);
 	
 				sSceneLight->l->l.colc[0] = sSceneLight->l->l.col[0];
 				sSceneLight->l->l.colc[1] = sSceneLight->l->l.col[1];
@@ -925,9 +926,9 @@ void setup_light_dynamic(Vec3c LDir, Vec3uc LCol, u8 LType) {
 				sSceneLight->l->l.dir[1] = LDir[1];
 				sSceneLight->l->l.dir[2] = LDir[2];
 				
-				sSceneLight->l->l.col[0] = approach_color_light(sSceneLight->l->l.col[0], pixColor[0]);
-				sSceneLight->l->l.col[1] = approach_color_light(sSceneLight->l->l.col[1], pixColor[1]);
-				sSceneLight->l->l.col[2] = approach_color_light(sSceneLight->l->l.col[2], pixColor[2]);
+				sSceneLight->l->l.col[0] = approach_color_light(sSceneLight->l->l.col[0], pixColor[0] * REDUCED_GI_BRIGHTNESS);
+				sSceneLight->l->l.col[1] = approach_color_light(sSceneLight->l->l.col[1], pixColor[1] * REDUCED_GI_BRIGHTNESS);
+				sSceneLight->l->l.col[2] = approach_color_light(sSceneLight->l->l.col[2], pixColor[2] * REDUCED_GI_BRIGHTNESS);
 	
 				sSceneLight->l->l.colc[0] = sSceneLight->l->l.col[0];
 				sSceneLight->l->l.colc[1] = sSceneLight->l->l.col[1];
@@ -1175,6 +1176,7 @@ void geo_process_camera(struct GraphNodeCamera *node) {
 	//if (gCurrLevelNum > 0) process_lighting(node); //crashes ares otherwise
 	
 	if (gCurrLevelNum > 0) process_lighting(); //crashes ares otherwise
+	
     if (node->fnNode.node.children != 0) {
         gCurGraphNodeCamera = node;
         node->matrixPtr = &gCameraTransform;
